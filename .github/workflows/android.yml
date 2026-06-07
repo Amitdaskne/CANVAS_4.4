@@ -10,8 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
@@ -24,17 +23,4 @@ jobs:
           pwd
           find . -name gradlew
           find . -name build.gradle
-
-      - name: Grant Permission
-        run: chmod +x "./CANVAS 4.4/CANVAS ALL FIX/NIKON/gradlew"
-
-      - name: Build APK
-        run: |
-          cd "./CANVAS 4.4/CANVAS ALL FIX/NIKON"
-          ./gradlew assembleDebug
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: APK
-          path: '**/*.apk'
+          find . -type d | head -100
