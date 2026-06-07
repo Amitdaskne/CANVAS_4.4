@@ -1,0 +1,591 @@
+#include "Helper/include.h"
+#include "Helper/definition.h"
+#include "Helper/SKINS/GunSkin.cpp"
+#include "Helper/SKINS/KillMsg.cpp"
+#include "Helper/SKINS/DeadBoxSkin.cpp"
+#include "RenderESP.h"
+#include "Helper/Login.h"
+#include <fcntl.h>
+#include <iostream>
+#include <fstream>
+#include <unistd.h>
+#include <string>
+#define _BYTE  uint8_t
+#define _WORD  uint16_t
+#define _DWORD uint32_t
+#define _QWORD uint64_t
+#define __int8
+
+bool onlyespserver = true;
+bool btserver = true;
+bool aimbotserver = true;
+#include "Helper/ImguiMenu.cpp"
+#include <sys/mman.h>
+#include <unistd.h>
+#include <cstdint>
+#include <cstring>
+
+bool CREDIT = true;
+bool AIMTEXT = false;
+bool BTTEXT = false;
+bool HealthMax = false;
+
+    
+
+//==============================================================================================//
+void DrawMSG(UCanvas* Canvas) {
+    if (!Canvas || !tslFont) return;
+	   
+	screenWidth = Canvas->SizeX;
+    screenHeight = Canvas->SizeY;
+
+    	if(Canvas) {
+
+		
+if (CREDIT) {
+// ========================= TELEGRAM =========================
+	   tslFont->LegacyFontSize = 20;
+       char bufferx[64];
+       snprintf(bufferx, sizeof(bufferx), "<: NIKON MOD 4.4 :>");
+       FString telegramchannel(bufferx);
+	       DrawOutlinedText(Canvas, telegramchannel, {glWidth / 2.00f, 60.0f}, FLinearColor(0.f, 1.f, 1.f, 1.0f), FLinearColor(0.f, 0.f, 0.f, 0.8f), true);
+		   
+		   
+// ========================= EXP =========================
+       tslFont->LegacyFontSize = 15;
+       std::string datePart = " " + EXP + " ";
+      // DrawOutlinedText(Canvas, FString(datePart.c_str()), {glWidth / 12.0f, 680.0f}, FLinearColor(1.0f, 1.0f, 0.f, 0.0f), FLinearColor(0.f, 0.f, 0.f, 0.0f), true);   
+// ========================= VERSION =========================
+   /*    tslFont->LegacyFontSize = 18;
+       char buffer[64];
+       snprintf(buffer, sizeof(buffer), "AIMBOT SERVER");
+       DrawOutlinedText(Canvas, FString(buffer), {Canvas->SizeX / 1.12f, 680.0f}, FLinearColor(1.f, 0.5f, 0.1f, 1.0f), FLinearColor(0.f, 0.f, 0.f, 0.1f), true);
+*/
+
+tslFont->LegacyFontSize = 15;
+
+char buffery[64];
+snprintf(buffery, sizeof(buffery), "     NIKON MOD - [ 4.4.0 ]");
+
+DrawOutlinedText(Canvas, FString(buffery), {Canvas->SizeX / 15.12f, 630.0f}, FLinearColor(1.f, 0.f, 0.f, 1.0f), FLinearColor(0.f, 0.f, 0.f, 0.1f), true);
+
+
+tslFont->LegacyFontSize = 15;
+
+char bufferz[64];
+snprintf(bufferz, sizeof(bufferz), "     com.pubg.imobile");
+
+DrawOutlinedText(Canvas, FString(bufferz), {Canvas->SizeX / 15.0f, 655.0f}, FLinearColor(1.f, 1.f, 0.f, 1.0f), FLinearColor(0.f, 0.f, 0.f, 0.1f), true);
+
+}
+
+if (AIMTEXT) {
+tslFont->LegacyFontSize = 19;
+       char buffer[64];
+       snprintf(buffer, sizeof(buffer), "AIMBOT SERVER");
+       DrawOutlinedText(Canvas, FString(buffer), {Canvas->SizeX / 1.12f, 680.0f}, FLinearColor(1.f, 1.f, 0.f, 1.0f), FLinearColor(0.f, 0.f, 1.f, 0.1f), true);
+       }
+       
+if (BTTEXT) {
+tslFont->LegacyFontSize = 19;
+       char buffer[64];
+       snprintf(buffer, sizeof(buffer), "BULLET TRACK");
+       DrawOutlinedText(Canvas, FString(buffer), {Canvas->SizeX / 1.12f, 680.0f}, FLinearColor(1.f, 1.f, 0.f, 1.0f), FLinearColor(0.f, 0.f, 1.f, 0.1f), true);
+       }       
+
+}}
+
+//==========================================//
+void MemoryHacksBy_uKnowSpidy() {
+    if (!g_LocalController || !g_LocalPlayer) return;
+	//===================================================================================================================//
+     if (IpadView) {
+        g_LocalPlayer->ThirdPersonCameraComponent->SetFieldOfView(105.0f); 
+    }
+    
+        
+    //===================================================================================================================//
+
+	    int kill_message_event_idx = 1000;
+        auto VTable = (void **) g_LocalController->VTable;
+        auto f_mprotect = [](uintptr_t addr, size_t len, int32_t prot) -> int32_t {
+       static_assert(PAGE_SIZE == 4096);
+       constexpr size_t page_size = static_cast<size_t>(PAGE_SIZE);
+       void* start = reinterpret_cast<void*>(addr & -page_size);
+       uintptr_t end = (addr + len + page_size - 1) & -page_size;
+       return mprotect(start, end - reinterpret_cast<uintptr_t>(start), prot);};
+   if (VTable && (VTable[kill_message_event_idx] != kill_message_event)) {
+        orig_kill_message_event = decltype(orig_kill_message_event)(VTable[kill_message_event_idx]);
+		LOGE("vtable Offset %lx",(uintptr_t) VTable[kill_message_event_idx] - Cheat::libUE4Base);
+        f_mprotect((uintptr_t)(&VTable[kill_message_event_idx]), sizeof(uintptr_t), PROT_READ | PROT_WRITE);
+        VTable[kill_message_event_idx] = (void *) kill_message_event;
+	}
+    //===================================================================================================================//
+    if (g_LocalPlayer && g_LocalPlayer->AvatarComponent2) {
+        auto AvatarComp = g_LocalPlayer->AvatarComponent2;
+        auto* NetAvatarComp = (FNetAvatarSyncData*)((uintptr_t)AvatarComp + 0x3E8);
+    if (!NetAvatarComp) return;
+        auto& Slotsybc = NetAvatarComp->SlotSyncData;
+        bool updated = false;
+        int selectedSuitIndex = g_PlayerOutfit.currentOutfit.load();
+    if (selectedSuitIndex >= 0 && selectedSuitIndex < IM_ARRAYSIZE(g_Outfits)) {
+        int desiredItemId = g_Outfits[selectedSuitIndex].itemId;
+    if (Slotsybc.Num() > 2 && Slotsybc[2].ItemId != desiredItemId) {
+        Slotsybc[2].ItemId = desiredItemId;
+        updated = true;
+    }}
+    if (updated) {
+        g_LocalPlayer->AvatarComponent2->OnRep_BodySlotStateChanged();
+    }}
+    //===================================================================================================================//
+    if (!g_LocalPlayer || !g_LocalPlayer->AvatarComponent2) return;
+        auto* NetAvatarComp = (FNetAvatarSyncData*)((uintptr_t)g_LocalPlayer->AvatarComponent2 + 0x3E8);
+    if (!NetAvatarComp) return;
+        auto& Slots = NetAvatarComp->SlotSyncData;
+        bool updated = false;
+        for (int i = 0; i < Slots.Num(); i++) {
+        int& id = Slots[i].ItemId;
+        auto findNewId = [&](const auto& map) -> bool {
+        auto it = map.find(id);
+    if (it != map.end() && id != it->second) {
+        id = it->second;
+        updated = true;
+        return true;
+    } else {
+        return false;
+    }};
+    if (findNewId(Bagpack) || findNewId(Helmet) || findNewId(Parachute)) {
+        continue;
+    }}
+    if (updated) {
+        g_LocalPlayer->AvatarComponent2->OnRep_BodySlotStateChanged();
+    }
+	//===================================================================================================================//
+	if (VehicleSkin && g_LocalPlayer && g_LocalPlayer->CurrentVehicle) {
+        auto* CurrentVehicle = g_LocalPlayer->CurrentVehicle;
+    if ((uintptr_t)CurrentVehicle != lastVehicle) {
+        lastVehicle = (uintptr_t)CurrentVehicle;
+        lastSkinApplied = -1; // Reset skin
+    }
+    if (auto* VehicleAvatar = CurrentVehicle->VehicleAvatar) {
+        int DefaultAvatarID = VehicleAvatar->GetDefaultAvatarID();
+        int CurrentSkinID = CurrentVehicle->GetAvatarID();
+        auto it = VehicleSkinMap.find(DefaultAvatarID);
+    if (it != VehicleSkinMap.end()) {
+        int DesiredSkinID = it->second;
+    if (DesiredSkinID != CurrentSkinID && lastSkinApplied != DesiredSkinID) {
+        lastSkinApplied = DesiredSkinID;
+        VehicleAvatar->ChangeItemAvatar(DesiredSkinID, true);
+    }}}}
+    //===================================================================================================================//
+    if (GunSkin && g_LocalPlayer) {
+        auto* WeaponManager = g_LocalPlayer->WeaponManagerComponent;
+    if (WeaponManager) {
+        auto propSlot = WeaponManager->GetCurrentUsingPropSlot();
+    if ((int)propSlot.GetValue() < 1 || (int)propSlot.GetValue() > 4) return;
+        auto* Weapon = WeaponManager->CurrentWeaponReplicated;
+        auto& UnrealHacks = Weapon->synData;
+    if (UnrealHacks.Num() > 0) {
+        int weaponID = Weapon->GetWeaponID();
+        std::unordered_map<int, int>* currentWeaponMap = nullptr;
+        switch (weaponID) {
+        case 101004: currentWeaponMap = &M416SkinsID; break;
+        case 101001: currentWeaponMap = &AKMSkinsID; break;
+        case 101002: currentWeaponMap = &M16A4SkinsID; break;
+        case 101003: currentWeaponMap = &SCARLSkinsID; break;
+        case 101005: currentWeaponMap = &GROZASkinsID; break;
+        case 101006: currentWeaponMap = &AUGSkinsID; break;
+        case 101007: currentWeaponMap = &QBZSkinsID; break;
+        case 101008: currentWeaponMap = &M762SkinsID; break;
+        case 101102: currentWeaponMap = &ACE32SkinsID; break;
+        case 103003: currentWeaponMap = &AWMSkinsID; break;
+        case 103002: currentWeaponMap = &M24SkinsID; break;
+        case 103001: currentWeaponMap = &KAR98KSkinsID; break;
+        case 103012: currentWeaponMap = &AMRSkinsID; break;
+        case 103007: currentWeaponMap = &MK14SkinsID; break;
+        case 103004: currentWeaponMap = &SKSSkinsID; break;
+        case 103009: currentWeaponMap = &SLRSkinsID; break;
+        case 103006: currentWeaponMap = &MINI14SkinsID; break;
+        case 103100: currentWeaponMap = &MK12SkinsID; break;
+        case 105002: currentWeaponMap = &DP28SkinsID; break;
+        case 105010: currentWeaponMap = &MG3SkinsID; break;
+        case 105001: currentWeaponMap = &M249SkinsID; break;
+        case 102001: currentWeaponMap = &UZISkinsID; break;
+        case 102002: currentWeaponMap = &UMP45SkinsID; break;
+        case 102003: currentWeaponMap = &VECTORSKinsID; break;
+        case 102004: currentWeaponMap = &THOMPSONSkinsID; break;
+        case 102005: currentWeaponMap = &BIZONSkinsID; break;
+        case 103005: currentWeaponMap = &VSSSkinsID; break;
+        case 102105: currentWeaponMap = &P90SkinsID; break;
+        case 104003: currentWeaponMap = &S12KSkinsID; break;
+        case 104002: currentWeaponMap = &S1897SkinsID; break;
+        case 104004: currentWeaponMap = &DBSSkinsID; break;
+        case 101012: currentWeaponMap = &HoneyBadgerSkinsID; break;
+        case 101100: currentWeaponMap = &FAMASSkinsID; break;
+        case 108004: currentWeaponMap = &PANSkinsID; break;
+        case 108001: currentWeaponMap = &MacheteSkinsID; break;
+        case 108005: currentWeaponMap = &DaggerSkinsID; break;
+        default: break;
+    }
+    if (currentWeaponMap) {
+        bool skinChanged = false;
+        for (int i = 0; i < UnrealHacks.Num(); i++) {
+        auto& entry = UnrealHacks[i];
+        auto it = currentWeaponMap->find(entry.DefineID.TypeSpecificID);
+    if (it != currentWeaponMap->end() && entry.DefineID.TypeSpecificID != it->second) {
+        entry.DefineID.TypeSpecificID = it->second;
+        skinChanged = true;
+    }}
+    if (skinChanged) {
+        Weapon->OnRep_AvatarMeshChanged();
+    }}}}}
+    //===================================================================================================================//
+	if (Cheat::MemoryHack::InstantHit) {
+		Write_Float(Cheat::libUE4Base + 0x9C043A8, 8.95671814e-21);
+	}
+    //===================================================================================================================//
+    if (Cheat::MemoryHack::SmallCrossHair && g_LocalPlayer->WeaponManagerComponent) {
+    if (auto WeaponManagerComponent = g_LocalPlayer->WeaponManagerComponent) {
+        auto propSlot = WeaponManagerComponent->GetCurrentUsingPropSlot();
+  if ((int) propSlot.GetValue() >= 1 && (int) propSlot.GetValue() <= 3) {
+    if (auto* CurrentWeapon = (ASTExtraShootWeapon*)g_LocalPlayer->WeaponManagerComponent->CurrentWeaponReplicated) {
+    if (CurrentWeapon->ShootWeaponEntityComp) CurrentWeapon->ShootWeaponEntityComp->GameDeviationFactor = 0.0f;
+    }}}}
+    
+
+
+
+    //===================================================================================================================//
+	
+    //===================================================================================================================//
+}
+
+
+void logout() {
+        system("rm -rf /data/data/com.pubg.imobile/shared_prefs");
+        system("mkdir /data/data/com.pubg.imobile/shared_prefs");
+        system("chmod 777 /data/data/com.pubg.imobile/shared_prefs");
+        system("rm -rf /data/data/com.pubg.imobile/databases");
+        system("rm -rf /data/data/com.pubg.imobile/files/login-identifier.txt");
+        system("rm -rf /data/data/com.pubg.imobile/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Intermediate");
+        system("rm -rf /data/data/com.pubg.imobile/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Intermediate");
+        system("rm -rf /data/data/com.pubg.imobile/files/TGPA");
+        system("rm -rf /data/data/com.pubg.imobile/files/TGPA");
+        system("rm -rf /data/data/com.pubg.imobile/files/ProgramBinaryCache");
+        system("rm -rf /data/data/com.pubg.imobile/files/ProgramBinaryCache");
+        system("chmod -R 000 /data/data/com.pubg.imobile/files/ano_tmp/ano.ano3.dat");
+
+ }
+//==============================================================================================//
+
+std::string Filepath = "/sdcard/Android/obb/com.pubg.imobile/key.lic";
+const char *Gamepackage = "com.pubg.imobile";
+
+    #include <string>
+#include <thread>
+#include <chrono>
+#include <cstring>
+
+bool fileExists(const std::string &filePath){
+std::ifstream file(filePath);
+return file.good();
+}
+bool isFileEmpty(const std::string &filePath){
+std::ifstream file(filePath);
+return file.peek() == std::ifstream::traits_type::eof();
+}
+bool directoryExists(const std::string &path){
+DIR *dir = opendir(path.c_str());
+if (dir){
+closedir(dir);
+return true;
+}else{
+return false;
+}
+}
+// --- Globals jo pehle se honi chahiye ---
+static char keyForLogin[64];
+void GetKey(){
+char keypath[256];
+sprintf(keypath, "/sdcard/Android/obb/%s/Key.lic", Gamepackage);
+int fd = open(keypath, O_RDONLY);
+read(fd, &keyForLogin, sizeof(keyForLogin));
+close(fd);
+}
+void logError(const char *errorMessage){
+char filePath[256];
+sprintf(filePath, "/sdcard/Android/obb/%s/Error.txt", Gamepackage);
+int fileDescriptor = open(filePath, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+if (fileDescriptor != -1){
+write(fileDescriptor, errorMessage, strlen(errorMessage));
+write(fileDescriptor, "\n", 1);
+close(fileDescriptor);
+}
+}
+bool saveClipboardTextToFile(const char *filePath, const char *clipboardText){
+int fd = open(filePath, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+if (fd == -1){
+return false;
+}
+size_t len = std::strlen(clipboardText);
+ssize_t written = write(fd, clipboardText, len);
+if (written != len){
+return false;
+}
+close(fd);
+return true;
+}
+
+void *loda_thread(void *) {
+	
+    while (!g_App)
+    {
+        sleep(1);
+    }
+    std::string ClipboardText;
+    std::string Keystatus;
+    std::ofstream keyFile;
+
+    do {
+        if (!fileExists(Filepath.c_str()))
+        {
+            ClipboardText = getClipboardText();
+
+            if (ClipboardText.empty()) {
+                logError("Clipboard is empty.");
+                exit(0);
+            }
+
+            keyFile.open(Filepath);
+
+            if (!keyFile) {
+                logError("Failed to create or open key.lic file.");
+                exit(0);
+            }
+
+            keyFile << ClipboardText;
+            keyFile.close();
+        }
+        GetKey();
+        if (fileExists(Filepath.c_str()) && !isFileEmpty(Filepath.c_str())) {
+            if (!isLogin) {
+                Keystatus = Login(keyForLogin);
+                if (Keystatus == "OK") {
+                    isLogin = bconfiger && g_Auth == g_Token;
+                    if (bconfiger && g_Auth == g_Token) {
+                        
+            
+        
+                    } else {
+                        logError("nhi hoga");
+                        exit(0);
+                    }
+                } else {
+                    logError(Keystatus.c_str());
+                    system("rm -rf /sdcard/Android/obb/com.pubg.imobile/key.lic");
+                    exit(1);
+                }
+            } else {
+                logError("already True (:");
+                exit(0);
+            }
+        } else {
+            logError("Key file not found.");
+            exit(0);
+        }
+    } while (Keystatus != "OK");
+
+    return nullptr;
+}
+
+
+
+//==============================================================================================//
+
+//=========== ================//
+
+//==============================================================================================//
+__int64 __fastcall (*oDamageFix)(__int64 a1, _QWORD *a2, __int64 a3);
+__int64 __fastcall hDamageFix(__int64 a1, _QWORD *a2, __int64 a3) 
+{
+    return 0;
+}
+//==============================================================================================//
+__int64 __fastcall (*oUnlockFPS)(__int64 a1, int a2);
+__int64 __fastcall hUnlockFPS(__int64 a1, int a2)
+{
+    return 120LL;
+}
+//==============================================================================================//
+
+
+__int64 __fastcall (*orig_PostRender)(UGameViewportClient* ViewportClient, UCanvas* Canvas);
+__int64 __fastcall new_PostRender(UGameViewportClient* ViewportClient, UCanvas* Canvas) {
+    if (!Canvas) 
+        return 0;
+    __int64 xCanvas = orig_PostRender(ViewportClient, Canvas);
+    glWidth  = Canvas->SizeX;
+    glHeight = Canvas->SizeY;
+    static bool bFontLoaded = false;
+    if (!tslFont || !robotoTinyFont) {
+    if (!bFontLoaded) {std::thread([] { LoadFont(nullptr); }).detach(); bFontLoaded = true;}
+       return 0;
+    }
+    DrawMSG(Canvas);
+    LocalPlayer(Canvas);
+    DrawPlayerESP(Canvas);
+    MemoryHacksBy_uKnowSpidy();
+ //   LobbySkins(Canvas);
+	return xCanvas;
+}
+void PostRenderHook() {
+    auto GViewport = GetGameViewport();
+
+    if (GViewport && Cheat::libUE4Base) {
+        uintptr_t TargetAddr = Cheat::libUE4Base + Cheat::PostRender_Offset;
+        void** VTable = (void **)GViewport->VTable; 
+        
+        if (VTable) {
+            int postrender_idx = -1;
+            for (int i = 0; i < 250; i++) {
+                if ((uintptr_t)VTable[i] == TargetAddr) {
+                    postrender_idx = i;
+                    break;
+                }
+            }
+
+            if (postrender_idx != -1 && VTable[postrender_idx] != (void*)new_PostRender) {
+                auto f_mprotect = [](uintptr_t addr, size_t len, int32_t prot) -> int32_t {
+                    size_t page_size = 4096;
+                    void* start = reinterpret_cast<void*>(addr & ~(page_size - 1));
+                    return mprotect(start, page_size, prot);
+                };
+                orig_PostRender = (decltype(orig_PostRender))(VTable[postrender_idx]);
+
+                f_mprotect((uintptr_t)(&VTable[postrender_idx]), sizeof(uintptr_t), PROT_READ | PROT_WRITE);
+                VTable[postrender_idx] = (void *)new_PostRender;
+            }
+        }
+    } 
+    }
+    
+
+
+
+#include "Helper/Bypass.h"
+//=======================================================================================
+void *main_thread(void *) {
+    logout();
+    while (!(Cheat::libUE4Base = Tools::GetBaseAddress("libUE4.so")))
+    sleep(1);
+    while (!(g_App = *(android_app **)(Cheat::libUE4Base + Cheat::GNativeAndroidApp_Offset)))
+    sleep(1);
+    *(uintptr_t *)&MessageBoxExt = Cheat::libUE4Base + 0x81BE3CC;
+    
+    
+    while (!(FName::GNames = GetGNames()))
+    sleep(1);
+    UObject::GUObjectArray = (FUObjectArray *)(Cheat::libUE4Base + Cheat::GUObject_Offset);
+	
+
+	PostRenderHook();
+	
+	
+
+A64HookFunction((void *)(Cheat::libUE4Base + 0x695C9B4), (void *)xNIKONBulletInner, (void **)&NIKONBulletInner); 
+
+
+std::string Op1 = "Smart BT Activate Successfull";
+std::u16string xxx1 = convertToUtf16(Op1);
+std::string Op2 = "Smart Aimbot Activate Successfull";
+std::u16string xxx2 = convertToUtf16(Op2);
+std::string Op3 = "Select Version: \n1. YES = BULLET TRACK \n2. NO = AIMBOT ";
+std::u16string xxx3 = convertToUtf16(Op3);
+
+
+
+///Massagebox start////
+if (MessageBoxExt(1, (char16_t *)xxx3.c_str(), (char16_t *)f2.c_str()) == 1){
+Cheat::Esp::Line = true;
+        Cheat::Esp::Health = true;
+        Cheat::Esp::Skeleton = true;
+        Cheat::Esp::Name = true;
+        Cheat::Esp::Distance = true;
+        Cheat::Esp::Count = true;
+        Cheat::Esp::Vehicle = true;
+		Cheat::Esp::GranadeWarning = true;
+	    Cheat::Esp::Items = true;
+        Cheat::Esp::LootBox = true;
+        Cheat::Esp::Alert = true;
+      //  Cheat::Aimbot::Enable = true;
+		Cheat::BulletTrack::Enable = true;
+		HealthMax = true;
+		BTTEXT = true;
+        GunSkin = true;
+        VehicleSkin = true;
+        
+		Cheat::MemoryHack::SmallCrossHair = true;
+        IpadView = true;
+   MessageBoxExt(0, (char16_t *)xxx1.c_str(), (char16_t *)f2.c_str());
+   }else{   
+   
+        Cheat::Esp::Line = true;
+        Cheat::Esp::Health = true;
+        Cheat::Esp::Skeleton = true;
+        Cheat::Esp::Name = true;
+        Cheat::Esp::Distance = true;
+        Cheat::Esp::Count = true;
+        Cheat::Esp::Vehicle = true;
+		Cheat::Esp::GranadeWarning = true;
+	    Cheat::Esp::Items = true;
+        Cheat::Esp::LootBox = true;
+        Cheat::Esp::Alert = true;
+        Cheat::Aimbot::Enable = true;
+        Cheat::Aimbot::IgnoreKnock = true;
+        Cheat::Aimbot::VisCheck = true;
+        AIMTEXT = true;
+        
+		//Cheat::BulletTrack::Enable = true;
+        GunSkin = true;
+        VehicleSkin = true;
+		Cheat::MemoryHack::SmallCrossHair = true;
+        IpadView = true;
+ MessageBoxExt(0, (char16_t *)xxx2.c_str(), (char16_t *)f2.c_str());
+   }
+
+	
+	
+	
+	
+	
+    return 0;
+}
+//==============================================================================================//
+__attribute__((constructor))
+void _init() {
+    pthread_create(&t1, nullptr, main_thread, nullptr);
+    pthread_detach(t1);
+    pthread_create(&t2, nullptr, loda_thread, nullptr);
+    pthread_detach(t2);
+	pthread_create(&t3, nullptr, shake_thread, nullptr);
+    pthread_detach(t3);
+}
+
+
+//==============================================================================================//
+static bool SIGNATUR = true;
+
+extern "C" {
+
+JNIEXPORT jstring JNICALL
+Java_com_NASHEDIx_JALWAx_JALWAxKR_api(JNIEnv *env, jclass) {
+    return SIGNATUR ? env->NewStringUTF("QR") : (exit(1), (jstring)0);
+}
+
+JNIEXPORT void JNICALL
+Java_com_NASHEDIx_JALWAx_JALWAxKR_SIGNATUR(JNIEnv *, jobject, jint code, jboolean val) {
+    if (code == 2077) SIGNATUR = val;
+    else exit(1);
+}
+
+}
