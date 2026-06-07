@@ -10,17 +10,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      - name: Extract ZIP
-        run: unzip -o CANVAS_4.4.zip
+      - name: Grant Permission
+        run: chmod +x "./CANVAS_4.4/CANVAS 4.4/CANVAS ALL FIX /NIKON/gradlew"
 
-      - name: Show Structure
+      - name: Build APK
         run: |
-          pwd
-          find . -name gradlew
-          find . -name build.gradle
-          find . -type d | head -100
+          cd "./CANVAS_4.4/CANVAS 4.4/CANVAS ALL FIX /NIKON"
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: APK
+          path: '**/*.apk'
