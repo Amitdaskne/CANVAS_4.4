@@ -2,7 +2,6 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 31
-    buildToolsVersion "31.0.2"
     defaultConfig {
         applicationId "com.GKP.MODS"
         minSdkVersion 29
